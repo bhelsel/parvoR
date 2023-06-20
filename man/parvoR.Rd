@@ -7,13 +7,13 @@
 \description{
 The parvoR package provides several important functions:
 
-\code{\link{parvo_get_oues}}
+\code{\link{parvo_calculate_oues}}
 
-\code{\link{parvo.extract.data}}
+\code{\link{parvo_extract_data}}
 
-\code{\link{parvo.extract.meta}}
+\code{\link{parvo_extract_meta}}
 
-\code{\link{parvo.ree.main}}
+\code{\link{parvo_ree_main}}
 
-\code{\link{parvo.aee.final4}}
+\code{\link{parvo_aee_final4}}
 }

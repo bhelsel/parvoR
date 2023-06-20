@@ -1,4 +1,4 @@
-#' @title parvo_get_oues
+#' @title parvo_calculate_oues
 #' @description A function to calculate Oxygen Uptake Efficiency Slope at 75%, 90%, and 100% VO2 max measured using a Parvo Medics TrueOne 2400 metabolic cart
 #' @param path Path to a single file or directory with the VO2 Max excel files
 #' @param return.data Returns the OUES results to the R console, Default: TRUE
@@ -11,7 +11,7 @@
 #' @examples 
 #' \dontrun{
 #' if(interactive()){
-#'  parvo_get_oues(path)
+#'  parvo_calculate_oues(path)
 #'  }
 #' }
 #' @seealso 
@@ -20,7 +20,7 @@
 #'  \code{\link[data.table]{fwrite}}
 #'  \code{\link[plyr]{rbind.fill}}
 #'  \code{\link[stats]{lm}}
-#' @rdname parvo_get_oues
+#' @rdname parvo_calculate_oues
 #' @export 
 #' @importFrom stringr str_split
 #' @importFrom readxl read_xlsx
@@ -28,7 +28,7 @@
 #' @importFrom plyr rbind.fill
 #' @importFrom stats lm
 
-parvo_get_oues <- function(path, return.data = TRUE, write.summary.file = FALSE, write.individual.file = FALSE, verbose = FALSE, ...){
+parvo_calculate_oues <- function(path, return.data = TRUE, write.summary.file = FALSE, write.individual.file = FALSE, verbose = FALSE, ...){
   
   if(dir.exists(path)){
     files <- list.files(path, full.names = TRUE, pattern = ".xls$|.xlsx$")
