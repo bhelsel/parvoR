@@ -1,3 +1,7 @@
+#' Copyright © 2023 University of Kansas. All rights reserved.
+#'
+#' Creative Commons Attribution NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+
 #' @title Resting Energy Expenditure Main Function
 #' @description Read in Parvo and Accelerometer data (if available) and calculate the estimated resting energy expenditure.
 #' @param accel.path Pathname to the accelerometer AGD file, Default: NULL.

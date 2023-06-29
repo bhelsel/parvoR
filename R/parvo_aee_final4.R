@@ -1,3 +1,7 @@
+#' Copyright © 2023 University of Kansas. All rights reserved.
+#'
+#' Creative Commons Attribution NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+
 #' @title Parvo AEE Final 4
 #' @description Takes average of last 4 minutes of the walking protocol from the WalkDS study.
 #' @param parvo.path Pathname to the Parvo XLSX file.

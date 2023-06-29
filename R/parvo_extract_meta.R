@@ -1,3 +1,7 @@
+#' Copyright © 2023 University of Kansas. All rights reserved.
+#'
+#' Creative Commons Attribution NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+
 #' @title Parvo Extract Meta Data
 #' @description Extracts the Parvo meta data from the top of the XLSX file.
 #' @param parvo.path Pathname to the Parvo XLSX file.

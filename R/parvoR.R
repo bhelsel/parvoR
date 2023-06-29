@@ -21,5 +21,6 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(
 #' @name parvoR
 #' @import dplyr
 #' @import magrittr
+#' @import MoveKC
 
 NULL
