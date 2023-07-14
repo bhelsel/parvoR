@@ -1,6 +1,6 @@
-#' Copyright © 2023 University of Kansas. All rights reserved.
-#'
-#' Creative Commons Attribution NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+# Copyright © 2023 University of Kansas. All rights reserved.
+#
+# Creative Commons Attribution NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
 
 #' @title parvo_calculate_oues
 #' @description A function to calculate Oxygen Uptake Efficiency Slope at 75%, 90%, and 100% VO2 max measured using a Parvo Medics TrueOne 2400 metabolic cart

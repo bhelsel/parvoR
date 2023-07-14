@@ -16,10 +16,6 @@ Returns a vector with the stored meta data from the Parvo XLSX file.
 Extracts the Parvo meta data from the top of the XLSX file.
 }
 \details{
-Copyright © 2023 University of Kansas. All rights reserved.
-
-Creative Commons Attribution NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
-
 Extracts the Parvo meta data from the top of the XLSX file.
 }
 \examples{

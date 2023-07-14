@@ -1,3 +1,7 @@
+# Copyright © 2023 University of Kansas. All rights reserved.
+#
+# Creative Commons Attribution NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+
 if(getRversion() >= "2.15.1")  utils::globalVariables(
   c(".", "diff.rq", "diff.ve.l.min", "diff.vo2.ml.kg.min", "vo2.l.min", "ve.l.min",
     "time.min", "time", "read_agd", "Date", " Time", "HR", "Axis1", "Vector.Magnitude",
