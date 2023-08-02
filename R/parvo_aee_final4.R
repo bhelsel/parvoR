@@ -62,7 +62,7 @@ parvo_aee_final4 <- function (parvo.path, corrected.time.path = NULL, accel.path
   if(!is.null(accel.path)){
     gt3x.files <- list.files(accel.path, pattern = ".gt3x$", full.names = TRUE)
     agd.files <- list.files(accel.path, pattern = ".agd$", full.names = TRUE)
-    hip <- get_counts(path = gt3x.files[grep(paste0("BH", id), gt3x.files)], epoch = epoch_size, parser = "uncalibrated")
+    hip <- get_counts(path = gt3x.files[grep(paste0("BH", id), gt3x.files)], epoch = epoch_size, parser = "read.gt3x")
     hip <- hip[c("time", "Axis1", "Vector.Magnitude")]
     hip <- hip %>% dplyr::filter(time >= vo2$timestamp[1] & time <= vo2$timestamp[nrow(vo2)])
     
@@ -84,7 +84,7 @@ parvo_aee_final4 <- function (parvo.path, corrected.time.path = NULL, accel.path
       mutate(epoch_size = epoch_size)
     
     
-    right.wrist <- get_counts(path = gt3x.files[grep(paste0("R", id), gt3x.files)], epoch = epoch_size, parser = "uncalibrated")
+    right.wrist <- get_counts(path = gt3x.files[grep(paste0("R", id), gt3x.files)], epoch = epoch_size, parser = "read.gt3x")
     right.wrist <- right.wrist[c("time", "Axis1", "Vector.Magnitude")]
     right.wrist <- right.wrist %>% dplyr::filter(time >= vo2$timestamp[1] & time <= vo2$timestamp[nrow(vo2)])
     
@@ -94,7 +94,7 @@ parvo_aee_final4 <- function (parvo.path, corrected.time.path = NULL, accel.path
       dplyr::summarise(Axis1 = sum(Axis1), Vector.Magnitude = sum(Vector.Magnitude), n = dplyr::n()) %>%
       mutate(epoch_size = epoch_size)
   
-    left.wrist <- get_counts(path = gt3x.files[grep(paste0("L", id), gt3x.files)], epoch = epoch_size, parser = "uncalibrated")
+    left.wrist <- get_counts(path = gt3x.files[grep(paste0("L", id), gt3x.files)], epoch = epoch_size, parser = "read.gt3x")
     left.wrist <- left.wrist[c("time", "Axis1", "Vector.Magnitude")]
     left.wrist <- left.wrist %>% dplyr::filter(time >= vo2$timestamp[1] & time <= vo2$timestamp[nrow(vo2)])
   
