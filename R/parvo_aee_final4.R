@@ -114,24 +114,21 @@ parvo_aee_final4 <- function (parvo.path, corrected.time.path = NULL, accel.path
   }
   
   if(return_raw_data){
-    vo2 <- 
-      vo2 %>%
-      mutate(time = lubridate::round_date(vo2$timestamp, unit = paste(epoch_size, "second"))) %>%
-      select(time, vo2.l.min:ve.l.min) %>%
-      group_by(time) %>%
-      summarise_all(mean, na.rm = TRUE)
     
     hip %<>% rename("hip.va" = "Axis1", "hip.vm" = "Vector.Magnitude", "heart.rate" = "HR")
-    
     right.wrist %<>% rename("rwrist.va" = "Axis1", "rwrist.vm" = "Vector.Magnitude")
-    
     left.wrist %<>% rename("lwrist.va" = "Axis1", "lwrist.vm" = "Vector.Magnitude")
     
-    data <- vo2 %>% 
-      merge(., hip, by = "time") %>% 
-      merge(., right.wrist, by = "time") %>% 
-      merge(., left.wrist, by = "time")
+    data <- vo2 %>%
+      rename("time" = "timestamp") %>%
+      merge(., hip, by = "time", all = TRUE) %>% 
+      merge(., right.wrist, by = "time", all = TRUE) %>% 
+      merge(., left.wrist, by = "time", all = TRUE) %>%
+      mutate(time = lubridate::round_date(time, unit = paste(epoch_size, "second")))
     
+    if(epoch_size == 1) data %<>% mutate_at(.vars = vars(time:ve.l.min), .funs = function(x) zoo::na.locf0(x))
+    if(epoch_size != 1) data %<>% group_by(time) %>% summarise_all(mean, na.rm = TRUE)
+  
     return(data)
   }
   
