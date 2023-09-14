@@ -35,6 +35,7 @@ parvo_aee_final4 <- function (parvo.path, corrected.time.path = NULL, accel.path
   file <- readxl::read_xlsx(parvo.path, col_names = c(paste0("Col", 1:12)))
   id <- strsplit(x = gsub(pattern = ".xlsx", replacement = "", x = basename(parvo.path)), split = "S")[[1]][1]
   stage <- strsplit(x = gsub(pattern = ".xlsx", replacement = "", x = basename(parvo.path)), split = "S")[[1]][2]
+  unit <- paste(epoch_size, "seconds")
   
   if(is.null(corrected.time.path)){
     starttime <- as.POSIXct(paste0(file[3, 2], "/", file[3, 4], "/", file[3, 6], " ", file[3, 7], ":", file[3,9], ":", file[3,10]), format="%Y/%m/%d %H:%M:%S", tz=Sys.timezone())  
@@ -64,17 +65,22 @@ parvo_aee_final4 <- function (parvo.path, corrected.time.path = NULL, accel.path
     agd.files <- list.files(accel.path, pattern = ".agd$", full.names = TRUE)
     hip <- get_counts(path = gt3x.files[grep(paste0("BH", id), gt3x.files)], epoch = epoch_size, parser = "read.gt3x")
     hip <- hip[c("time", "Axis1", "Vector.Magnitude")]
-    hip <- hip %>% dplyr::filter(time >= vo2$timestamp[1] & time <= vo2$timestamp[nrow(vo2)])
+    
+    hip <- 
+      hip %>% 
+      dplyr::filter(time >= lubridate::floor_date(vo2$timestamp[1], unit = unit)) %>%
+      dplyr::filter(time <= lubridate::ceiling_date(vo2$timestamp[nrow(vo2)], unit = unit))
     
     hip <- 
       read_agd(agd.files[grep("BH", agd.files)]) %>%
-      mutate(time = as.POSIXct(paste0(Date, " ", ` Time`),
-                                    format = "%m/%d/%Y %H:%M:%S", tz = "UTC"),
-             time = lubridate::round_date(time, unit = paste(epoch_size, "second"))) %>%
+      mutate(time = as.POSIXct(paste0(Date, " ", ` Time`), format = "%m/%d/%Y %H:%M:%S", tz = "UTC"),
+             time = lubridate::round_date(time, unit = unit)) %>%
       group_by(time) %>%
       summarise(HR = round(mean(HR, na.rm = TRUE))) %>%
-      mutate(HR = ifelse(HR == 0, NA, HR)) %>%
-      dplyr::filter(time >= vo2$timestamp[1] & time <= vo2$timestamp[nrow(vo2)]) %>%
+      mutate(HR = ifelse(HR < 30, NA, HR),
+             HR = zoo::na.locf0(HR)) %>% # Last observation carried forward if HR is < 30
+      dplyr::filter(time >= lubridate::floor_date(vo2$timestamp[1], unit = unit)) %>%
+      dplyr::filter(time <= lubridate::ceiling_date(vo2$timestamp[nrow(vo2)], unit = unit)) %>%
       merge(x = hip, y = ., by = "time")
       
     hip.summary <- 
@@ -83,10 +89,13 @@ parvo_aee_final4 <- function (parvo.path, corrected.time.path = NULL, accel.path
       dplyr::summarise(Axis1 = sum(Axis1), HR = mean(HR, na.rm = TRUE), Vector.Magnitude = sum(Vector.Magnitude), n = dplyr::n()) %>%
       mutate(epoch_size = epoch_size)
     
-    
     right.wrist <- get_counts(path = gt3x.files[grep(paste0("R", id), gt3x.files)], epoch = epoch_size, parser = "read.gt3x")
     right.wrist <- right.wrist[c("time", "Axis1", "Vector.Magnitude")]
-    right.wrist <- right.wrist %>% dplyr::filter(time >= vo2$timestamp[1] & time <= vo2$timestamp[nrow(vo2)])
+
+    right.wrist <- 
+      right.wrist %>% 
+      dplyr::filter(time >= lubridate::floor_date(vo2$timestamp[1], unit = unit)) %>%
+      dplyr::filter(time <= lubridate::ceiling_date(vo2$timestamp[nrow(vo2)], unit = unit))
     
     right.wrist.summary <- 
       right.wrist %>% 
@@ -96,8 +105,12 @@ parvo_aee_final4 <- function (parvo.path, corrected.time.path = NULL, accel.path
   
     left.wrist <- get_counts(path = gt3x.files[grep(paste0("L", id), gt3x.files)], epoch = epoch_size, parser = "read.gt3x")
     left.wrist <- left.wrist[c("time", "Axis1", "Vector.Magnitude")]
-    left.wrist <- left.wrist %>% dplyr::filter(time >= vo2$timestamp[1] & time <= vo2$timestamp[nrow(vo2)])
-  
+
+    left.wrist <- 
+      right.wrist %>% 
+      dplyr::filter(time >= lubridate::floor_date(vo2$timestamp[1], unit = unit)) %>%
+      dplyr::filter(time <= lubridate::ceiling_date(vo2$timestamp[nrow(vo2)], unit = unit))
+    
     left.wrist.summary <- 
       left.wrist %>% 
       dplyr::group_by(time = lubridate::round_date(time, unit="1 minute")) %>% 
@@ -111,24 +124,46 @@ parvo_aee_final4 <- function (parvo.path, corrected.time.path = NULL, accel.path
                            paste0("Right Wrist Vector Magnitude: ", round(mean(right.wrist.summary$Vector.Magnitude), 1)), 
                            paste0("Left Wrist Vertical Axis: ", round(mean(left.wrist.summary$Axis1), 1)),
                            paste0("Left Wrist Vector Magnitude: ", round(mean(left.wrist.summary$Vector.Magnitude), 1)))
-  }
-  
-  if(return_raw_data){
     
     hip %<>% rename("hip.va" = "Axis1", "hip.vm" = "Vector.Magnitude", "heart.rate" = "HR")
     right.wrist %<>% rename("rwrist.va" = "Axis1", "rwrist.vm" = "Vector.Magnitude")
     left.wrist %<>% rename("lwrist.va" = "Axis1", "lwrist.vm" = "Vector.Magnitude")
-    
-    data <- vo2 %>%
-      rename("time" = "timestamp") %>%
-      merge(., hip, by = "time", all = TRUE) %>% 
-      merge(., right.wrist, by = "time", all = TRUE) %>% 
-      merge(., left.wrist, by = "time", all = TRUE) %>%
-      mutate(time = lubridate::round_date(time, unit = paste(epoch_size, "second")))
-    
-    if(epoch_size == 1) data %<>% mutate_at(.vars = vars(time:ve.l.min), .funs = function(x) zoo::na.locf0(x))
-    if(epoch_size != 1) data %<>% group_by(time) %>% summarise_all(mean, na.rm = TRUE)
+    accel_data <- merge(merge(hip, right.wrist, by = "time"), left.wrist, by = "time")
+  }
   
+  if(return_raw_data){
+    
+    if(epoch_size != 1){
+      data <- 
+        vo2 %>% 
+        rename("time" = "timestamp") %>% 
+        mutate(time = lubridate::round_date(time, unit = unit)) %>%
+        group_by(time) %>%
+        summarise_all(mean) %>%
+        merge(., accel_data, by = "time", all.x = TRUE)
+      
+      if(any(is.na(data[1, ]))) data <- data[2:nrow(data), ]
+      
+    }
+    
+    if(epoch_size == 1) {
+      data <- 
+        vo2 %>%
+        rename("time" = "timestamp") %>% 
+        merge(., accel_data, by = "time") %>%
+        mutate_at(.vars = vars(time:ve.l.min), .funs = function(x) zoo::na.locf0(x))
+      }
+  
+    if(any(is.na(data$time.min))){
+      indx <- which(is.na(data$time.min))
+      varnames <- names(select(data, time.min:ve.l.min))
+      for(n in varnames){
+        for(i in indx){
+          data[i, n] <- (data[i-1, n] + data[i+1, n]) / 2
+        }
+      }
+    }
+    
     return(data)
   }
   
