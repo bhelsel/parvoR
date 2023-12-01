@@ -122,20 +122,60 @@
 
 #' @noRd
 #' @keywords internal
+name_repair <- function(data, rows){
+  
+  repaired_names <- 
+    apply(data[rows, ], 2, paste, collapse = "_") %>%
+    unname() %>%
+    tolower() %>%
+    gsub("[/]", "_", .) %>%
+    gsub("[^a-z0-9_]", "", .) %>%
+    gsub("_$|_na", "", .)
+  
+  colnames(data) <- repaired_names
+  mc <- which(colnames(data) == "na")
+  if(length(mc) == 0){
+    data <- data[-seq(rows[1], rows[2], 1), ]
+  } else{
+    data <- data[-seq(rows[1], rows[2], 1), -mc]
+  }
+  return(data)
+}
+
+
+#' @noRd
+#' @keywords internal
 .get_start <- function(data){
   
   starttime <- 
     paste0(
       data[3, 2], "/", data[3, 4], "/", data[3, 6], " ", 
       data[3, 7], ":", data[3,9], ":", data[3,10]
-      )
+    )
   
   as.POSIXct(starttime, ormat = "%Y/%m/%d %H:%M:%S", tz = Sys.timezone())
+}
+
+
+#' @noRd
+#' @keywords internal
+
+aggregate_time <- function(data, time_breaks = "1 sec"){
+  data <- 
+    data %>% 
+    dplyr::group_by(time = lubridate::floor_date(time, unit = time_breaks)) %>%
+    dplyr::summarise_all(mean, na.rm = TRUE)
+  return(data)
 }
 
 
 
 
 
+
+
+
+
+ 
 
 

@@ -27,6 +27,7 @@
 #' @importFrom readxl read_xlsx
 #' @importFrom lubridate force_tz round_date
 #' @importFrom agcounts get_counts
+#' @importFrom zoo na.locf0
 
 
 parvo_aee_final4 <- function (parvo.path, corrected.time.path = NULL, accel.path = NULL, 

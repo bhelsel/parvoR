@@ -3,9 +3,8 @@
 # Creative Commons Attribution NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
 
 if(getRversion() >= "2.15.1")  utils::globalVariables(
-  c(".", "diff.rq", "diff.ve.l.min", "diff.vo2.ml.kg.min", "vo2.l.min", "ve.l.min",
-    "time.min", "time", "read_agd", "Date", " Time", "HR", "Axis1", "Vector.Magnitude",
-    "time.group", "timestamp"))
+  c(".", "time", "read_agd", "Date", " Time", "HR", "Axis1", "Vector.Magnitude",
+    "group", "minutes", "time.min", "ve.l.min"))
 
 #' @title parvoR: Useful functions to interact with data from the ParvoMedics TrueOne 2400.
 #'
@@ -13,11 +12,11 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(
 #' 
 #' \code{\link{parvo_calculate_oues}}
 #' 
-#' \code{\link{parvo_extract_data}}
+#' \code{\link{extract_data}}
 #' 
-#' \code{\link{parvo_extract_meta}}
+#' \code{\link{extract_meta}}
 #' 
-#' \code{\link{parvo_ree_main}}
+#' \code{\link{calculate_rmr}}
 #' 
 #' \code{\link{parvo_aee_final4}}
 #' 

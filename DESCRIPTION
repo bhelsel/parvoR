@@ -1,7 +1,7 @@
 Package: parvoR
 Type: Package
 Title: Useful functions to interact with data from the ParvoMedics TrueOne 2400
-Version: 0.1.0
+Version: 0.2.0
 Author: Brian C. Helsel
 Maintainer: The package maintainer <bhelsel80@gmail.com>
 Description: The parvoR package contains useful functions to interact with data from the ParvoMedics TrueOne 2400.
@@ -15,7 +15,9 @@ Imports:
     plyr, 
     readxl, 
     stats,
-    stringr 
+    stringr,
+    zoo,
+    openxlsx
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true
