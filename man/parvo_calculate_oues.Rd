@@ -6,6 +6,8 @@
 \usage{
 parvo_calculate_oues(
   path,
+  vo2_change = 10,
+  rer_limit = 1,
   return.data = TRUE,
   write.summary.file = FALSE,
   write.individual.file = FALSE,
@@ -15,6 +17,10 @@ parvo_calculate_oues(
 }
 \arguments{
 \item{path}{Path to a single file or directory with the VO2 Max excel files}
+
+\item{vo2_change}{A value of which to exclude VO2 values exceeding the limit (e.g., 25 excludes VO2 change ± 25\%)}
+
+\item{rer_limit}{Add a limit to RER values requiring that VO2 max are ≥ the specified threshold}
 
 \item{return.data}{Returns the OUES results to the R console, Default: TRUE}
 

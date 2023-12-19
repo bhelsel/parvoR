@@ -27,21 +27,20 @@ extract_meta <- function(path){
 
 
 #' @export 
-extract_meta.parvo <- function (path) {
+extract_meta.parvo <- function(path) {
   id <- substr(basename(path), 1, 4)
-  file <- readxl::read_xlsx(path, col_names = c(paste0("Col", 1:12)))
-  meta <- file[1:26,]
+  data <- openxlsx::read.xlsx(path, colNames = FALSE)
+  meta <- data[1:26,]
   location <- paste0(meta[1, as.vector(!is.na(meta[1, ]))==TRUE], " ", meta[2, as.vector(!is.na(meta[1, ]))==TRUE])
   starttime <- as.POSIXct(paste0(meta[3, 2], "/", meta[3, 4], "/", meta[3, 6], " ", meta[3, 7], ":", meta[3,9], ":", meta[3,10]), format="%Y/%m/%d %H:%M:%S", tz=Sys.timezone())
-  name <- paste0(unlist(strsplit(stringr::str_replace(as.character(meta[6,2]), " ", ""), "[,]"))[2], " ", unlist(strsplit(stringr::str_replace(as.character(meta[6,2]), " ", ""), "[,]"))[1])
-  age <- as.numeric(meta[7, 2])
-  gender <- paste0(meta[7, 5])
-  height_in <- paste0(meta[8,2])
-  weight_lbs <- round((as.numeric(meta[8,7])), 2)
-  room_temp <- as.numeric(paste0(meta[16,2]))*(9/5) + 32
-  baro_pres <- round(as.numeric(paste0(meta[16,5])), 2)
-  humidity <- round((as.numeric(paste0(meta[17,4]))*100), 2)
-  demo <- cbind(id = id, location, starttime = as.character(starttime), name, age, gender, height_in, weight_lbs, room_temp, baro_pres, humidity)
+  name <- paste0(unlist(strsplit(stringr::str_replace(as.character(meta[5,2]), " ", ""), "[,]"))[2], " ", unlist(strsplit(stringr::str_replace(as.character(meta[5,2]), " ", ""), "[,]"))[1])
+  age <- as.numeric(meta[6, 2])
+  gender <- paste0(meta[6, 5])
+  height_in <- paste0(meta[7,2])
+  weight_lbs <- round((as.numeric(meta[7,7])), 2)
+  room_temp <- as.numeric(meta[13,2])*(9/5) + 32
+  baro_pres <- round(as.numeric(paste0(meta[13,5])), 2)
+  demo <- cbind(id = id, location, starttime = as.character(starttime), name, age, gender, height_in, weight_lbs, room_temp, baro_pres)
   return(demo)
 }
 
@@ -49,7 +48,7 @@ extract_meta.parvo <- function (path) {
 #' @export 
 extract_meta.cosmed <- function(path){
   id <- substr(basename(path), 1, 4)
-  data <- readxl::read_xlsx(path, sheet = "Data", col_names = FALSE, .name_repair = "unique_quiet")
+  data <- openxlsx::read.xlsx(path, colNames = FALSE)
   colnames(data) <- paste0("v", 1:ncol(data))
   ds <- which(data[1, ] == "t")
   meta <- data[, 1:(ds-1)]

@@ -4,7 +4,8 @@
 
 if(getRversion() >= "2.15.1")  utils::globalVariables(
   c(".", "time", "read_agd", "Date", " Time", "HR", "Axis1", "Vector.Magnitude",
-    "group", "minutes", "time.min", "ve.l.min"))
+    "group", "minutes", "time.min", "ve.l.min", "Measure", "Values", "changem", 
+    "datetime", "rer", "time_min", "ve_l_min", "vo2_kg_ml_kg_m", "vo2_l_min"))
 
 #' @title parvoR: Useful functions to interact with data from the ParvoMedics TrueOne 2400.
 #'
