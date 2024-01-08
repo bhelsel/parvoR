@@ -64,9 +64,9 @@
   data$oues <- data$event <- NA
   # Identify events
   if(any(grepl("Start", s_event$Events))){
-    exerciseStart <- s_event[s_event$Events=="Start Exercise", 2, drop = TRUE] - starttime
+    exerciseStart <- max(s_event[s_event$Events=="Start Exercise", 2, drop = TRUE] - starttime)
   } else{
-    exerciseStart <- s_event[s_event$Events=="Warm Up", 2, drop = TRUE] - starttime
+    exerciseStart <- max(s_event[s_event$Events=="Warm Up", 2, drop = TRUE] - starttime)
   }
   
   # How to identify max here?
@@ -121,7 +121,8 @@
     eventSummary <- tibble(Events = events[, 2], Time = events[, 1])
   }, 
     error = function(x){
-      eventSummary <- dplyr::tibble(Events = "Start Exercise", Time = starttime)
+      endtime <- starttime + (as.numeric(data[(grep("Max VO2", data[, 1]) - 1), 1, drop = TRUE]) * 60)
+      eventSummary <- dplyr::tibble(Events = c("Start Exercise", "Cool Down"), Time = c(starttime, endtime))
       }
     )
   
