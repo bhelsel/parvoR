@@ -7,7 +7,7 @@
 calculate_rmr(path, accel_path = NULL, var_limit = 15, steady_state = 15)
 }
 \arguments{
-\item{path}{Pathname to the Parvo XLSX file.}
+\item{path}{Pathname to the REE XLSX file.}
 
 \item{accel_path}{Pathname to the accelerometer AGD file, Default: NULL.}
 

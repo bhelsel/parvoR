@@ -15,5 +15,7 @@ The parvoR package provides several important functions:
 
 \code{\link{calculate_rmr}}
 
+\code{\link{calculate_rmr_cv}}
+
 \code{\link{parvo_aee_final4}}
 }

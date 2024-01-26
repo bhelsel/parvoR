@@ -4,7 +4,7 @@
 
 #' @title Calculate Resting Metabolic Rate
 #' @description Read in Parvo or Cosmed data and accelerometer data (if available) to calculate the estimated resting metabolic rate.
-#' @param path Pathname to the Parvo XLSX file.
+#' @param path Pathname to the REE XLSX file.
 #' @param accel_path Pathname to the accelerometer AGD file, Default: NULL.
 #' @param var_limit Number to ensure changes in ventilation, oxygen consumption, and respiratory quotient do not exceed variation limit, Default: 15.
 #' @param steady_state The number of rows at the end of the data set to consider as the steady state measurement, Default: 15
@@ -47,22 +47,9 @@ calculate_rmr <- function(path, accel_path = NULL, var_limit = 15, steady_state 
     
   
   if(is.null(accel_path)==FALSE){
-    accel <- MoveKC::read_agd(accel_path)
-    accel <- cbind(timestamp = paste(accel$Date, accel$` Time`), accel)
-    accel[, c("Date", " Time")] <- NULL
-    accel$timestamp <- as.POSIXct(strptime(accel$timestamp, tz = Sys.timezone(), format = "%m/%d/%Y %H:%M:%S"))
-    accel$timestamp <- lubridate::round_date(accel$timestamp, unit = "1 minute")
-    accel <- accel[, c("timestamp", " Axis1", "HR")]
-    accel <- dplyr::rename(accel, "accel.hr.bpm" = "HR", "counts" = " Axis1")
-    accel <- accel %>%
-      dplyr::group_by(timestamp = cut(accel$timestamp, breaks = "1 min")) %>%
-      dplyr::summarise_all(mean) %>%
-      dplyr::ungroup()
-    accel$timestamp <- as.POSIXct(strftime(as.character(accel$timestamp), tz = Sys.timezone(), format = "%Y-%m-%d %H:%M:%S"))
-    data <- merge(data, accel, by="timestamp", all.x=TRUE)
+    data <- merge(data, .retrieve_accelerometer(accel_path), by="time", all.x=TRUE)
     data <- data[data$counts<50, ]
   }
-  
   
   data <- 
     data %>% 
@@ -94,8 +81,48 @@ calculate_rmr <- function(path, accel_path = NULL, var_limit = 15, steady_state 
 }
 
 
+#' @title Calculate Resting Metabolic Rate using Coefficient of Variation
+#' @description Calculate Resting Metabolic Rate using Coefficient of Variation
+#' @param path Pathname to the REE XLSX file.
+#' @param accel_path Pathname to the accelerometer AGD file, Default: NULL., Default: NULL
+#' @return OUTPUT_DESCRIPTION
+#' @details Calculate Resting Metabolic Rate using Coefficient of Variation. Currently,
+#'     it is set up to calculate coefficient of variation over 10 observations (e.g., 2.5 minutes
+#'     at 15 second epochs, 5 minutes at 30 second epochs or 10 minutes at 1 minute epochs). This
+#'     may be adjustable in the future.
+#' @rdname calculate_rmr_cv
+#' @export 
+#' @importFrom zoo zoo rollapply
+#' @importFrom stats sd
+#' @importFrom dplyr filter group_by summarise_at vars all_of mutate select summarise_all
 
-
+calculate_rmr_cv <- function(path, accel_path = NULL){
+  data <- extract_data(path)
+  zoo_df <- zoo::zoo(data$vo2_kg_ml_min_kg, order.by = data$time)
+  rolling_cv <- zoo::rollapply(zoo_df, width = 10, FUN = function(x) stats::sd(x) / mean(x) * 100, by = 1)
+  min_index <- which.min(rolling_cv)
+  min_period <- data$time[min_index:(min_index + 9)] # Extract the corresponding time period
+  variables <- c("ve_l_min", "rq", "vo2_kg_ml_min_kg", "eekc_kcal_day")
+  
+  data %<>%
+    dplyr::filter(time %in% min_period) %>%
+    dplyr::group_by(time = strptime(time, format = "%Y-%m-%d %H:%M")) %>%
+    dplyr::summarise_at(dplyr::vars(dplyr::all_of(variables)), .funs = function(x) mean(x, na.rm = TRUE)) %>%
+    dplyr::mutate(time = as.POSIXct(time, tz = "UTC"))
+  
+  if(!is.null(accel_path)){
+    data <- merge(data, .retrieve_accelerometer(accel_path), by="time", all.x=TRUE)
+    data <- data[data$counts<50, ]
+  }
+  
+  data %<>% 
+    dplyr::select(-time) %>%
+    dplyr::summarise_all(mean) %>% 
+    dplyr::mutate(minutes = 5, n.obs = 10, moderate_vo2_kg = vo2_kg_ml_min_kg * 3, vigoroous_vo2_kg = vo2_kg_ml_min_kg * 6)
+  
+  return(data)
+  
+}
 
 
 

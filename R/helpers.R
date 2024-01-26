@@ -221,9 +221,25 @@ aggregate_time <- function(data, time_breaks = "1 sec"){
   return(df)
 }
 
+path <- "/Volumes/data/ProtectedData/IRB_STUDY00150427_SPARTANS/Study/Individual Data/1001/REE/ACCEL/KAH1001 (2024-01-23)1sec.agd"
 
+.retrieve_accelerometer <- function(path){
+  data <- MoveKC::read_agd(path)
+  data <- cbind(time = paste(data$Date, data$` Time`), data)
+  data[, c("Date", " Time")] <- NULL
+  data$time <- as.POSIXct(strptime(data$time, format = "%m/%d/%Y %H:%M:%S"), tz = "UTC")
+  data$time <- lubridate::round_date(data$time, unit = "1 minute")
+  data <- data[, c("time", " Axis1", "HR")]
+  data <- dplyr::rename(data, "hr_bpm" = "HR", "counts" = " Axis1")
+  data <- data %>%
+    dplyr::group_by(time = cut(data$time, breaks = "1 min")) %>%
+    dplyr::summarise_all(mean) %>%
+    dplyr::ungroup()
+  data$time <- as.POSIXct(strftime(as.character(data$time), format = "%Y-%m-%d %H:%M:%S"),  tz = "UTC")
+  return(data)
+}
 
-
+.retrieve_accelerometer(path)
 
 
  
