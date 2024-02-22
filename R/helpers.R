@@ -221,8 +221,6 @@ aggregate_time <- function(data, time_breaks = "1 sec"){
   return(df)
 }
 
-path <- "/Volumes/data/ProtectedData/IRB_STUDY00150427_SPARTANS/Study/Individual Data/1001/REE/ACCEL/KAH1001 (2024-01-23)1sec.agd"
-
 .retrieve_accelerometer <- function(path){
   data <- MoveKC::read_agd(path)
   data <- cbind(time = paste(data$Date, data$` Time`), data)
@@ -238,8 +236,6 @@ path <- "/Volumes/data/ProtectedData/IRB_STUDY00150427_SPARTANS/Study/Individual
   data$time <- as.POSIXct(strftime(as.character(data$time), format = "%Y-%m-%d %H:%M:%S"),  tz = "UTC")
   return(data)
 }
-
-.retrieve_accelerometer(path)
 
 
  
