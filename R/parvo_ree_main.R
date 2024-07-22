@@ -118,7 +118,7 @@ calculate_rmr_cv <- function(path, accel_path = NULL){
   data %<>% 
     dplyr::select(-time) %>%
     dplyr::summarise_all(mean) %>% 
-    dplyr::mutate(minutes = 5, n.obs = 10, moderate_vo2_kg = vo2_kg_ml_min_kg * 3, vigoroous_vo2_kg = vo2_kg_ml_min_kg * 6)
+    dplyr::mutate(minutes = 5, n.obs = 10, moderate_vo2_kg = vo2_kg_ml_min_kg * 3, vigorous_vo2_kg = vo2_kg_ml_min_kg * 6)
   
   return(data)
   
