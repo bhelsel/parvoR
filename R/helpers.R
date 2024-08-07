@@ -205,7 +205,7 @@ name_repair <- function(data, rows){
 aggregate_time <- function(data, time_breaks = "1 sec"){
   data <- 
     data %>% 
-    dplyr::group_by(time = lubridate::floor_date(time, unit = time_breaks)) %>%
+    dplyr::group_by(timestamp = lubridate::floor_date(timestamp, unit = time_breaks)) %>%
     dplyr::summarise_all(mean, na.rm = TRUE)
   return(data)
 }
