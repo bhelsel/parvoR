@@ -52,11 +52,12 @@ extract_data.parvo <- function (path, ...) {
   starttime <- as.POSIXct(ts, format = "%Y/%m/%d %H:%M:%S", tz = "UTC")
   ds <- grep("TIME", data[, 1, drop = TRUE])
   data <- data[ds:nrow(data), ]
-  data <- name_repair(data, rows = c(1, 3))
+  data <- name_repair(data, rows = 1:3)
   data <- data[stats::complete.cases(data), ]
   data <- dplyr::as_tibble(apply(data, 2, as.numeric))
-  data$time_min <- starttime + (data$time_min * 60)
-  colnames(data)[1] <- "time"
+  data$timestamp <- starttime + (data$time_min * 60)
+  colnames(data)[1] <- "elapsed_time"
+  data <- cbind(data[, "timestamp"], data[, -which(colnames(data) == "timestamp")])
   #if(aee==TRUE) vo2 <- vo2[is.na(vo2$tm.speed)==FALSE & vo2$tm.speed!=0, ]
   data <- aggregate_time(data, time_breaks)
   return(data)
