@@ -25,22 +25,30 @@ extract_meta <- function(path){
   UseMethod("extract_meta", path)
 }
 
-
 #' @export 
 extract_meta.parvo <- function(path) {
   id <- substr(basename(path), 1, 4)
   data <- openxlsx::read.xlsx(path, colNames = FALSE)
   meta <- data[1:26,]
   location <- paste0(meta[1, as.vector(!is.na(meta[1, ]))==TRUE], " ", meta[2, as.vector(!is.na(meta[1, ]))==TRUE])
+  if(substr(location, 1, 4) == "KUMC") location <- "KUMC CPAWM"
   starttime <- as.POSIXct(paste0(meta[3, 2], "/", meta[3, 4], "/", meta[3, 6], " ", meta[3, 7], ":", meta[3,9], ":", meta[3,10]), format="%Y/%m/%d %H:%M:%S", tz=Sys.timezone())
   name <- paste0(unlist(strsplit(stringr::str_replace(as.character(meta[5,2]), " ", ""), "[,]"))[2], " ", unlist(strsplit(stringr::str_replace(as.character(meta[5,2]), " ", ""), "[,]"))[1])
   age <- as.numeric(meta[6, 2])
   gender <- paste0(meta[6, 5])
-  height_in <- paste0(meta[7,2])
+  height_in <- round(as.numeric(paste0(meta[7,2])), 2)
   weight_lbs <- round((as.numeric(meta[7,7])), 2)
-  room_temp <- as.numeric(meta[13,2])*(9/5) + 32
+  room_temp_c <- as.numeric(meta[13,2])
+  room_temp_f <- as.numeric(meta[13,2])*(9/5) + 32
   baro_pres <- round(as.numeric(paste0(meta[13,5])), 2)
-  demo <- cbind(id = id, location, starttime = as.character(starttime), name, age, gender, height_in, weight_lbs, room_temp, baro_pres)
+  measured_o2 <- round(as.numeric(meta[19, 8]), 2)
+  measured_co2 <- round(as.numeric(meta[19, 11]), 2)
+  demo <- tibble::tibble(
+    id, location, starttime, 
+    name, age, gender, height_in, 
+    weight_lbs, room_temp_c, room_temp_f, 
+    baro_pres, measured_o2, measured_co2
+    )
   return(demo)
 }
 
@@ -61,9 +69,10 @@ extract_meta.cosmed <- function(path){
   gender <- meta[4, 2, drop = TRUE]
   height_cm <- as.numeric(meta[6,2])
   weight_kg <- as.numeric(meta[7,2])
-  room_temp <- as.numeric(meta[2,6])*(9/5) + 32
+  room_temp_c <- as.numeric(meta[2,6])
+  room_temp_f <- as.numeric(meta[2,6])*(9/5) + 32
   baro_pres <- as.numeric(meta[1, 6])
   humidity <- as.numeric(meta[3, 6])
-  demo <- data.frame(cbind(id = id, location, starttime = as.character(starttime), name, age, gender, height_cm, weight_kg, room_temp, baro_pres, humidity))
+  demo <- tibble::tibble(id = id, location, starttime = as.character(starttime), name, age, gender, height_cm, weight_kg, room_temp_c, room_temp_f, baro_pres, humidity)
   return(demo)
 }
