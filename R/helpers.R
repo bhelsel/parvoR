@@ -171,8 +171,12 @@ name_repair <- function(data, rows){
     gsub("[/]", "_", .) %>%
     gsub("[^a-z0-9_]", "", .) %>%
     gsub("__", "_", .) %>%
-    gsub("_$|_na|_bt_st|_stpd|_btps", "", .)
+    gsub("_$|_na|_bt_st|_stpd|_btps|_uncor", "", .)
     
+  if("vo2_kg_ml_kg_m" %in% repaired_names){
+    vo2_loc <- which(repaired_names == "vo2_kg_ml_kg_m")
+    repaired_names[vo2_loc] <- "vo2_kg_ml_min_kg"
+  }
   
   colnames(data) <- repaired_names
   mc <- which(colnames(data) == "na")

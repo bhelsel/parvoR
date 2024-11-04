@@ -81,7 +81,7 @@ extract_data.cosmed <- function(path, ...){
   remove_na <- function(x) {!all(is.na(x))}
   data <- data[apply(data, 1, remove_na), apply(data, 2, remove_na)]
   data$t_s <- starttime + (data$t_s * 24 * 3600)
-  colnames(data)[1] <- "time"
+  colnames(data)[1] <- "timestamp"
   data <- aggregate_time(data, time_breaks)
   return(data)
 }

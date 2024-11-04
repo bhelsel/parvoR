@@ -85,6 +85,8 @@ calculate_rmr <- function(path, accel_path = NULL, var_limit = 15, steady_state 
 #' @description Calculate Resting Metabolic Rate using Coefficient of Variation
 #' @param path Pathname to the REE XLSX file.
 #' @param accel_path Pathname to the accelerometer AGD file, Default: NULL., Default: NULL
+#' @param window The length of the rolling window in minutes to calculate the coefficient of variation, Default: 5 minutes
+#' @param excluded The number of minutes to exclude from the beginning of the analysis, Default: 5 minutes
 #' @return OUTPUT_DESCRIPTION
 #' @details Calculate Resting Metabolic Rate using Coefficient of Variation. Currently,
 #'     it is set up to calculate coefficient of variation over 10 observations (e.g., 2.5 minutes
@@ -96,29 +98,44 @@ calculate_rmr <- function(path, accel_path = NULL, var_limit = 15, steady_state 
 #' @importFrom stats sd
 #' @importFrom dplyr filter group_by summarise_at vars all_of mutate select summarise_all
 
-calculate_rmr_cv <- function(path, accel_path = NULL){
+calculate_rmr_cv <- function(path, accel_path = NULL, window = 5, excluded = 5){
   data <- extract_data(path)
-  zoo_df <- zoo::zoo(data$vo2_kg_ml_min_kg, order.by = data$time)
-  rolling_cv <- zoo::rollapply(zoo_df, width = 10, FUN = function(x) stats::sd(x) / mean(x) * 100, by = 1)
-  min_index <- which.min(rolling_cv)
-  min_period <- data$time[min_index:(min_index + 9)] # Extract the corresponding time period
-  variables <- c("ve_l_min", "rq", "vo2_kg_ml_min_kg", "eekc_kcal_day")
+  time_diff <- as.numeric(difftime(data[2, "timestamp", drop = TRUE], data[1, "timestamp", drop = TRUE], units = "sec"))
+  data <- data[(((excluded * 60) %/% time_diff)+1):nrow(data), ]
+  zoo_df <- zoo::zoo(data[, c("vo2_ml_min", "vco2_ml_min")], order.by = data$timestamp)
+  rolling_cv <- zoo::rollapply(zoo_df, width = (window * 60) %/% time_diff, FUN = function(x) (stats::sd(x) / mean(x)) * 100, by = 1)
+  
+  ilt10 <- which(rolling_cv[, 1] < 10 & rolling_cv[, 2] < 10) # Find indices less than 10% CV
+  if(length(ilt10) != 0){
+    min_index <- ilt10[which.min(rolling_cv[ilt10, 1] + rolling_cv[ilt10, 2])] # Find minimum values of the less than 10% CV indices
+  } else{
+    min_index <- which.min(rolling_cv[, 1] + rolling_cv[, 2]) # Find the minimum values even if not less than 10% CV
+  }
+  
+  min_period <- data$timestamp[min_index:(min_index + (((window * 60) %/% time_diff) - 1))] # Extract the corresponding time period
+
+  variables <- c("ve_l_min", "rq", "vo2_kg_ml_min_kg", names(data)[grep("eekc_kcal_day|ree_kcal_d", names(data))])
   
   data %<>%
-    dplyr::filter(time %in% min_period) %>%
-    dplyr::group_by(time = strptime(time, format = "%Y-%m-%d %H:%M")) %>%
+    dplyr::filter(timestamp %in% min_period) %>%
+    dplyr::group_by(timestamp = strptime(timestamp, format = "%Y-%m-%d %H:%M")) %>%
     dplyr::summarise_at(dplyr::vars(dplyr::all_of(variables)), .funs = function(x) mean(x, na.rm = TRUE)) %>%
-    dplyr::mutate(time = as.POSIXct(time, tz = "UTC"))
+    dplyr::mutate(timestamp = as.POSIXct(timestamp, tz = "UTC"))
   
   if(!is.null(accel_path)){
-    data <- merge(data, .retrieve_accelerometer(accel_path), by="time", all.x=TRUE)
+    data <- merge(data, .retrieve_accelerometer(accel_path), by="timestamp", all.x=TRUE)
     data <- data[data$counts<50, ]
   }
   
   data %<>% 
-    dplyr::select(-time) %>%
+    dplyr::select(-timestamp) %>%
     dplyr::summarise_all(mean) %>% 
-    dplyr::mutate(minutes = 5, n.obs = 10, moderate_vo2_kg = vo2_kg_ml_min_kg * 3, vigorous_vo2_kg = vo2_kg_ml_min_kg * 6)
+    dplyr::mutate(
+      minutes = 5, n.obs = (window * 60) %/% time_diff, 
+      moderate_vo2_kg = vo2_kg_ml_min_kg * 3, 
+      vigorous_vo2_kg = vo2_kg_ml_min_kg * 6,
+      cv_vo2_ml_min = as.numeric(rolling_cv[min_index, "vo2_ml_min"]),
+      cv_vco2_ml_min = as.numeric(rolling_cv[min_index, "vco2_ml_min"]))
   
   return(data)
   
