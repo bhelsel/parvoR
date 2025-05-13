@@ -123,7 +123,7 @@ calculate_rmr_cv <- function(path, accel_path = NULL, window = 5, excluded = 5){
     dplyr::mutate(timestamp = as.POSIXct(timestamp, tz = "UTC"))
   
   if(!is.null(accel_path)){
-    data <- merge(data, .retrieve_accelerometer(accel_path), by="timestamp", all.x=TRUE)
+    data <- merge(data, .retrieve_accelerometer(accel_path), by.x="timestamp", by.y="time", all.x=TRUE)
     data <- data[data$counts<50, ]
   }
   
